@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
-# In-memory users list (just for testing)
+
 users = []
 
 @auth_bp.route('/register', methods=['POST'])
@@ -26,7 +26,7 @@ def register():
         "id": len(users) + 1,
         "username": username,
         "email": email,
-        "password": password  #  Not hashed, just for mock use
+        "password": password  
     }
 
     users.append(new_user)
