@@ -1,23 +1,27 @@
 from flask import Blueprint, request, jsonify
-from models.tracker import Tracker
-from extensions import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from extensions import db
+from models.tracker import Tracker
 
 tracker_bp = Blueprint('tracker', __name__, url_prefix='/api/tracker')
 
-@tracker_bp.route('/', methods=['GET'])
-@jwt_required()
-def get_user_watchlist():
-    user_id = get_jwt_identity()
-    items = Tracker.query.filter_by(user_id=user_id).all()
-    return jsonify([item.to_dict() for item in items]), 200
-
 @tracker_bp.route('/', methods=['POST'])
 @jwt_required()
-def add_to_watchlist():
-    data = request.json
+def add_tracker():
+    data = request.get_json()
+    movie_title = data.get('movie_title')
+    status = data.get('status')
     user_id = get_jwt_identity()
-    item = Tracker(user_id=user_id, movie_title=data['movie_title'], status=data['status'])
-    db.session.add(item)
+
+    tracker = Tracker(movie_title=movie_title, status=status, user_id=user_id)
+    db.session.add(tracker)
     db.session.commit()
-    return jsonify(item.to_dict()), 201
+
+    return jsonify(tracker.to_dict()), 201
+
+@tracker_bp.route('/', methods=['GET'])
+@jwt_required()
+def get_tracker():
+    user_id = get_jwt_identity()
+    records = Tracker.query.filter_by(user_id=user_id).all()
+    return jsonify([t.to_dict() for t in records])

@@ -1,33 +1,64 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import create_access_token
+from models.user import User
+from extensions import db, bcrypt
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
+auth_bp = Blueprint('auth', __name__)
 
-
-users = []
-
+# Registration Route
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not data:
-        return jsonify({"error": "No input provided"}), 400
 
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+    if not data or not data.get('username') or not data.get('email') or not data.get('password'):
+        return jsonify({'message': 'Username, email, and password are required'}), 400
 
-    if not all([username, email, password]):
-        return jsonify({"error": "Missing fields"}), 400
+    # Check if user already exists
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({'message': 'Email already exists'}), 409
 
-    for user in users:
-        if user['email'] == email:
-            return jsonify({"error": "Email already registered"}), 400
+    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
 
-    new_user = {
-        "id": len(users) + 1,
-        "username": username,
-        "email": email,
-        "password": password  
-    }
+    new_user = User(
+        username=data['username'],
+        email=data['email'],
+        password_hash=hashed_password
+    )
+    db.session.add(new_user)
+    db.session.commit()
 
-    users.append(new_user)
-    return jsonify({"message": "User registered", "user": new_user}), 201
+    access_token = create_access_token(identity=new_user.id)
+
+    return jsonify({
+        'message': 'Registration successful',
+        'token': access_token,
+        'user': {
+            'id': new_user.id,
+            'username': new_user.username,
+            'email': new_user.email
+        }
+    }), 201
+
+# Login Route
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({'message': 'Email and password are required'}), 400
+
+    user = User.query.filter_by(email=data['email']).first()
+    if not user or not bcrypt.check_password_hash(user.password_hash, data['password']):
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    access_token = create_access_token(identity=user.id)
+
+    return jsonify({
+        'message': 'Login successful',
+        'token': access_token,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
+        }
+    }), 200
