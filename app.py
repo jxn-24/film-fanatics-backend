@@ -39,7 +39,7 @@ app.register_blueprint(clubs_bp, url_prefix='/api/clubs')
 app.register_blueprint(posts_bp, url_prefix='/api/posts')
 app.register_blueprint(comments_bp, url_prefix='/api/comments')
 app.register_blueprint(tracker_bp, url_prefix='/api/tracker')
-app.register_blueprint(ratings_bp, url_prefix='/api/ratings')  # Optional
+app.register_blueprint(ratings_bp, url_prefix='/api/ratings')  # type: ignore # Optional
 
 # Default route
 @app.route('/')
