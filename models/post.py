@@ -22,3 +22,18 @@ class Post(db.Model):
 
     def __repr__(self):
         return f'<Post {self.title}>'
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "content": self.content,
+            "movie_id": self.movie_id,
+            "movie_title": self.movie_title,
+            "movie_poster_url": self.movie_poster_url,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "user_id": self.user_id,
+            "club_id": self.club_id,
+            "likes_count": self.likes_count,
+        }

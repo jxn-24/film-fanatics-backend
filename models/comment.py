@@ -14,3 +14,13 @@ class Comment(db.Model):
 
     def __repr__(self):
         return f'<Comment {self.id}>'
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "content": self.content,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "user_id": self.user_id,
+            "post_id": self.post_id
+        }

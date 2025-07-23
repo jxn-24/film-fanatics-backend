@@ -10,16 +10,22 @@ clubs_bp = Blueprint('clubs', __name__, url_prefix='/api/clubs')
 @jwt_required()
 def create_club():
     data = request.get_json()
-    name, genre = data.get('name'), data.get('genre')
     user_id = get_jwt_identity()
 
-    club = Club(name=name, genre=genre)
-    club.members.append(User.query.get(user_id))
-    db.session.add(club)
-    db.session.commit()
+  
+    if not all(key in data for key in ['name', 'genre', 'description']):
+        return jsonify({'error': 'Missing required club fields'}), 400
 
-    return jsonify(club.to_dict()), 201
-
-@clubs_bp.route('/', methods=['GET'])
-def list_clubs():
-    return jsonify([c.to_dict() for c in Club.query.all()])
+    try:
+        club = Club(
+            name=data['name'],
+            genre=data['genre'],
+            description=data['description'],
+            owner_id=user_id  
+        )
+        db.session.add(club)
+        db.session.commit()
+        return jsonify({'message': 'Club created successfully', 'club_id': club.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
