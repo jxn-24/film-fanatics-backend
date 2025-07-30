@@ -62,5 +62,16 @@ class User(db.Model):
             followers.c.followed_id == user.id
         ).count() > 0
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'profile_picture': self.profile_picture,
+            'bio': self.bio,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
     def __repr__(self):
         return f'<User {self.username}>'
