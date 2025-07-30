@@ -7,5 +7,5 @@ psycopg2-binary
 Flask-migrate
 psycopg2-binary
 gunicorn
-
+Flask-Cors
 

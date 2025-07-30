@@ -9,7 +9,7 @@ from routes.clubs import clubs_bp
 from routes.posts import posts_bp
 from routes.comments import comments_bp
 from routes.tracker import tracker_bp
-from routes.ratings import ratings_bp  # Import ratings_bp if ratings.py exists
+from routes.ratings import ratings_bp  
 
 
 from models.user import User
@@ -18,6 +18,8 @@ from models.club import Club
 from models.comment import Comment
 from models.post import Post
 from models.tracker import Tracker
+
+from flask_cors import CORS
 
 app = Flask(__name__)
 env = config['development']
@@ -29,6 +31,7 @@ bcrypt.init_app(app)
 jwt.init_app(app)
 migrate.init_app(app, db)
 
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(users_bp, url_prefix='/api/users')
