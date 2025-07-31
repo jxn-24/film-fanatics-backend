@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from flask_cors import CORS  # ✅ Import CORS
+from flask_cors import CORS
 from config import config
 from extensions import db, bcrypt, jwt, migrate
 
@@ -26,13 +26,8 @@ app = Flask(__name__)
 env = config['development']
 app.config.from_object(env)
 
-# ✅ CORS Setup (this must come after app is defined)
-CORS(app, origins=[
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5178",  # ← your current local dev server
-    "https://film-fanatics-frontend.onrender.com"
-], supports_credentials=True)
+# ✅ Enable CORS globally (for local + deployed frontend)
+CORS(app, resources={r"/*": {"origins": "*"}})  # You can restrict origins in production
 
 # Initialize extensions
 db.init_app(app)

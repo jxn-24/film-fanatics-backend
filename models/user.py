@@ -2,6 +2,7 @@ from extensions import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# Association table for many-to-many relationships
 club_members = db.Table('club_members',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('club_id', db.Integer, db.ForeignKey('clubs.id'), primary_key=True)
@@ -24,27 +25,31 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Relationships
     posts = db.relationship('Post', backref='user', lazy=True, cascade="all, delete-orphan")
     comments = db.relationship('Comment', backref='user', lazy=True, cascade="all, delete-orphan")
     ratings = db.relationship('Rating', backref='user', lazy=True, cascade="all, delete-orphan")
     trackers = db.relationship('Tracker', backref='user', lazy=True, cascade="all, delete-orphan")
-
     clubs = db.relationship('Club', secondary=club_members, back_populates='members')
 
+    # Self-referential many-to-many for followers
     following = db.relationship(
-        'User', secondary=followers,
+        'User',
+        secondary=followers,
         primaryjoin=(followers.c.follower_id == id),
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'),
         lazy='dynamic'
     )
 
+    # Password methods
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    # Follow system
     def follow(self, user):
         if not self.is_following(user):
             self.following.append(user)
@@ -58,10 +63,9 @@ class User(db.Model):
         return False
 
     def is_following(self, user):
-        return self.following.filter(
-            followers.c.followed_id == user.id
-        ).count() > 0
+        return self.following.filter(followers.c.followed_id == user.id).count() > 0
 
+    # Serialize user info
     def to_dict(self):
         return {
             'id': self.id,
@@ -69,8 +73,8 @@ class User(db.Model):
             'email': self.email,
             'profile_picture': self.profile_picture,
             'bio': self.bio,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
     def __repr__(self):
