@@ -1,4 +1,6 @@
 from flask import Flask, jsonify
+from flask_cors import CORS  # ✅ Import CORS
+
 from config import config
 from extensions import db, bcrypt, jwt, migrate
 
@@ -24,6 +26,13 @@ app = Flask(__name__)
 # Load configuration (development by default)
 env = config['development']
 app.config.from_object(env)
+
+# ✅ Enable CORS (allow specific origins)
+CORS(app, origins=[
+    "http://localhost:5173",
+    "http://localhost:5174",  # if you're using a different port like 5178
+    "https://film-fanatics-frontend.onrender.com"
+])
 
 # Initialize extensions
 db.init_app(app)
